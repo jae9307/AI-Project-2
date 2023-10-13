@@ -23,7 +23,15 @@ class Problem:
             cars_per_action: aka number of attendants, or maximum number
                 of cars that can move on each step.
         """
-        
+        self.initial = initial
+        cars = initial.cars
+        for (x,y) in cars:
+            i = y
+            x = initial.n - 1
+            y = initial.n - 1 - y
+            cars[i] = (x,y)
+        goal = State(cars, initial.barriers)
+        self.goal = goal
 
     def actions(self, state):
         """Return the actions that can be executed in the given
