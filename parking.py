@@ -61,15 +61,18 @@ class Problem:
         legal_moves = {}
         for (x,y) in self.initial.cars:
             car_num = self.initial.cars_inv[(x,y)]
-            legal_moves[car_num] = []
+            legal_moves[car_num] = [{"stay":(x,y)}]
             if x+1 < self.initial.n and y < self.initial.n:
                 if self.state_matrix[x+1][y]==-1:
-                    legal_moves[car_num].append((x+1, y))
+                    legal_moves[car_num].append({"down":(x+1,y)})
             if x < self.initial.n and y-1 < self.initial.n and self.state_matrix[x][y-1]==-1:
-                legal_moves[car_num].append((x, y-1))
+                legal_moves[car_num].append({"left":(x,y-1)})
             if x < self.initial.n and y+1 < self.initial.n and self.state_matrix[x][y+1]==-1:
-                legal_moves[car_num].append((x, y-1))
-        print(legal_moves)
+                legal_moves[car_num].append({"right":(x,y+1)})
+
+        #for car in legal_moves:
+         #   for move in legal_moves[car]:
+
 
     def result(self, state, action):
         """Return the state that results from executing the given
