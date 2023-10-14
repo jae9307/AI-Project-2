@@ -24,7 +24,8 @@ class Problem:
                 of cars that can move on each step.
         """
         self.initial = initial
-        cars = initial.cars
+        self.attendants = cars_per_action
+        cars = initial.cars.copy()
         for (x,y) in cars:
             i = y
             x = initial.n - 1
@@ -32,6 +33,13 @@ class Problem:
             cars[i] = (x,y)
         goal = State(cars, initial.barriers)
         self.goal = goal
+        self.state_matrix = np.zeros((goal.n, goal.n))
+        for i in range(initial.n):
+            for j in range(initial.n):
+                if (i,j) in initial.cars:
+                    self.state_matrix[i][j] = initial.cars_inv[(i, j)]
+                else:
+                    self.state_matrix[i][j] = -1
 
     def actions(self, state):
         """Return the actions that can be executed in the given
@@ -49,7 +57,19 @@ class Problem:
         is a legal action
         So, you must return a *list* of actions, where each action
         is a *set* of car/action pairs. 
-        """ 
+        """
+        legal_moves = {}
+        for (x,y) in self.initial.cars:
+            car_num = self.initial.cars_inv[(x,y)]
+            legal_moves[car_num] = []
+            if x+1 < self.initial.n and y < self.initial.n:
+                if self.state_matrix[x+1][y]==-1:
+                    legal_moves[car_num].append((x+1, y))
+            if x < self.initial.n and y-1 < self.initial.n and self.state_matrix[x][y-1]==-1:
+                legal_moves[car_num].append((x, y-1))
+            if x < self.initial.n and y+1 < self.initial.n and self.state_matrix[x][y+1]==-1:
+                legal_moves[car_num].append((x, y-1))
+        print(legal_moves)
 
     def result(self, state, action):
         """Return the state that results from executing the given
