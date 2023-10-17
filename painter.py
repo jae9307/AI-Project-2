@@ -20,6 +20,26 @@ def recombine(
 		and then slicing each image into two pieces along
 		a randomly-chosen vertical or horizontal line.
 	"""
+	recombination = random.randint(0, 1)
+	if recombination == 0:
+		# vertical line split
+		split = random.randint(0, im1.shape[1])
+		left = im1[:, :split, :]
+		right = im2[:, split:, :]
+
+		new = np.hstack((left, right))
+
+		return new
+	else:
+		# horizontal line split
+		split = random.randint(0, im1.shape[0])
+		top = im1[:split, :, :]
+		bottom = im2[split:, :, :]
+
+		new = np.vstack((top, bottom))
+
+		return new
+
 
 def mutate(im: np.ndarray) -> np.ndarray:
 	"""Mutate an image.
@@ -34,6 +54,13 @@ def mutate(im: np.ndarray) -> np.ndarray:
 		replace with a randomly chosen new color.
 	"""
 
+	current_color = im[random.randint(0, im.shape[0]-1), random.randint(0, im.shape[1]-1), :]
+
+	new_color = np.array([random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)])
+
+	im[np.where((im == current_color).all(axis=2))] = new_color
+	return im
+
 
 def evaluate(im: np.ndarray):
 	"""Evaluate an image.
@@ -46,6 +73,9 @@ def evaluate(im: np.ndarray):
 		Since art is subjective, you have complete
 		freedom to implement this however you like.
 	"""
+	# just sums the red and greens and subtracts the blues
+	val = im[:,:,0] + im[:,:, 1] - im[:, :, 2]
+	return np.sum(val)
 def main():
 	parser = argparse.ArgumentParser(
     	prog='painter',
@@ -60,10 +90,39 @@ def main():
 
 	red = np.zeros((400,800,3))
 	red[:,:,0] = 255
-	plt.imsave("red.tiff", red/255)
 
 	blue = np.zeros((400,800,3))
 	blue[:,:,2] = 255
+
+	pool = [red, blue]
+
+	for i in range(args.generations):
+		new_pool = []
+		for j in range(args.pools):
+			im1 = random.choice(pool)
+			im2 = random.choice(pool)
+
+			new_im = recombine(im1, im2)
+
+			if random.random() < args.mutation:
+				new_im = mutate(new_im)
+			new_pool.append(new_im)
+
+		eval_scores = []
+		for j in range(len(new_pool)):
+			eval_scores.append(evaluate(new_pool[j]))
+
+		combined = list(zip(eval_scores, new_pool))
+
+		combined.sort(key=lambda x: x[0], reverse=True)
+
+		sorted_evals, sorted_pool = zip(*combined)
+
+		pool = sorted_pool[:args.pools]
+
+	for i in range(3):
+		name = "art" + str(i+1) + ".tiff"
+		plt.imsave(name, pool[i]/255)
 	# uncomment the lines below to view the image
 	#plt.imshow(blue)
 	#plt.show() 
