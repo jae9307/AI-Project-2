@@ -58,27 +58,55 @@ class Problem:
         So, you must return a *list* of actions, where each action
         is a *set* of car/action pairs. 
         """
-        legal_moves = {}
+
+        car_moves = [[] for _ in range(state.n)]
         for (x,y) in self.initial.cars:
             car_num = self.initial.cars_inv[(x,y)]
-            legal_moves[car_num] = [{"stay":(x,y)}]
-            if x+1 < self.initial.n and y < self.initial.n:
-                if self.state_matrix[x+1][y]==-1:
-                    legal_moves[car_num].append({"down":(x+1,y)})
-            if x < self.initial.n and y-1 < self.initial.n and self.state_matrix[x][y-1]==-1:
-                legal_moves[car_num].append({"left":(x,y-1)})
-            if x < self.initial.n and y+1 < self.initial.n and self.state_matrix[x][y+1]==-1:
-                legal_moves[car_num].append({"right":(x,y+1)})
+            # each car gets its own list of valid moves
+            car_moves[car_num].append((car_num, "stay")) #Every car can stay in place
+            # if it's legal to go up, down, left, or right, add that to the list of legal moves
+            if x+1 < self.initial.n and y < self.initial.n and self.state_matrix[x+1][y] == -1:
+                car_moves[car_num].append((car_num, "down"))
+            if x-1 < self.initial.n and y < self.initial.n and self.state_matrix[x-1][y] == -1:
+                car_moves[car_num].append((car_num, "up"))
+            if x < self.initial.n and y-1 < self.initial.n and self.state_matrix[x][y-1] == -1:
+                car_moves[car_num].append((car_num, "left"))
+            if x < self.initial.n and y+1 < self.initial.n and self.state_matrix[x][y+1] == -1:
+                car_moves[car_num].append((car_num, "right"))
 
-        #for car in legal_moves:
-         #   for move in legal_moves[car]:
+        list_combinations = []
+        combination_size = state.n
+
+        for combo in itertools.combinations(set(itertools.chain.from_iterable(car_moves)), combination_size):
+            # Check if all elements are from different lists
+            lists_used = set(item[0] for item in combo)
+            if len(lists_used) == combination_size:
+                list_combinations.append(combo)
+
+        action_list = [set(combination) for combination in list_combinations]
+
+        return action_list
+
+
 
 
     def result(self, state, action):
         """Return the state that results from executing the given
         action in the given state. The action must be one of
         self.actions(state)."""
-
+        new_state = state.cars.copy()
+        for car, move in action:
+            if move == "up":
+                new_state[car] = (new_state[car][0] - 1, new_state[car][1])
+            elif move == "down":
+                new_state[car] = (new_state[car][0] + 1, new_state[car][1])
+            elif move == "left":
+                new_state[car] = (new_state[car][0], new_state[car][1] - 1)
+            elif move == "right":
+                new_state[car] = (new_state[car][0], new_state[car][1] + 1)
+            elif move == "stay":
+                new_state[car] = (new_state[car][0], new_state[car][1])
+        return State(new_state, state.barriers)
 
 
     def goal_test(self, state):
