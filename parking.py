@@ -33,13 +33,6 @@ class Problem:
             cars[i] = (x,y)
         goal = State(cars, initial.barriers)
         self.goal = goal
-        self.state_matrix = np.zeros((goal.n, goal.n))
-        for i in range(initial.n):
-            for j in range(initial.n):
-                if (i,j) in initial.cars:
-                    self.state_matrix[i][j] = initial.cars_inv[(i, j)]
-                else:
-                    self.state_matrix[i][j] = -1
 
     def actions(self, state):
         """Return the actions that can be executed in the given
@@ -58,20 +51,21 @@ class Problem:
         So, you must return a *list* of actions, where each action
         is a *set* of car/action pairs. 
         """
-
+        blocked_list = list(state.cars_inv.keys())
+        blocked_list.extend(list(state.barriers))
         car_moves = [[] for _ in range(state.n)]
         for (x,y) in self.initial.cars:
             car_num = self.initial.cars_inv[(x,y)]
             # each car gets its own list of valid moves
             car_moves[car_num].append((car_num, "stay")) #Every car can stay in place
             # if it's legal to go up, down, left, or right, add that to the list of legal moves
-            if x+1 < self.initial.n and y < self.initial.n and self.state_matrix[x+1][y] == -1:
+            if x+1 < self.initial.n and y < self.initial.n and (x+1,y) not in blocked_list:
                 car_moves[car_num].append((car_num, "down"))
-            if x-1 < self.initial.n and y < self.initial.n and self.state_matrix[x-1][y] == -1:
+            if x-1 > 0 and y < self.initial.n and (x-1,y) not in blocked_list:
                 car_moves[car_num].append((car_num, "up"))
-            if x < self.initial.n and y-1 < self.initial.n and self.state_matrix[x][y-1] == -1:
+            if x < self.initial.n and y-1 > 0 and (x,y-1) not in blocked_list:
                 car_moves[car_num].append((car_num, "left"))
-            if x < self.initial.n and y+1 < self.initial.n and self.state_matrix[x][y+1] == -1:
+            if x < self.initial.n and y+1 < self.initial.n and (x,y+1) not in blocked_list:
                 car_moves[car_num].append((car_num, "right"))
 
         list_combinations = []
