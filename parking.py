@@ -54,28 +54,34 @@ class Problem:
         blocked_list = list(state.cars_inv.keys())
         blocked_list.extend(list(state.barriers))
         car_moves = [[] for _ in range(state.n)]
-        for (x,y) in self.initial.cars:
-            car_num = self.initial.cars_inv[(x,y)]
+        for (x,y) in state.cars:
+            car_num = state.cars_inv[(x,y)]
             # each car gets its own list of valid moves
-            car_moves[car_num].append((car_num, "stay")) #Every car can stay in place
+            car_moves[car_num].append((car_num, "stay", (x,y))) #Every car can stay in place
             # if it's legal to go up, down, left, or right, add that to the list of legal moves
-            if x+1 < self.initial.n and y < self.initial.n and (x+1,y) not in blocked_list:
-                car_moves[car_num].append((car_num, "down"))
-            if x-1 > 0 and y < self.initial.n and (x-1,y) not in blocked_list:
-                car_moves[car_num].append((car_num, "up"))
-            if x < self.initial.n and y-1 > 0 and (x,y-1) not in blocked_list:
-                car_moves[car_num].append((car_num, "left"))
-            if x < self.initial.n and y+1 < self.initial.n and (x,y+1) not in blocked_list:
-                car_moves[car_num].append((car_num, "right"))
+            if x+1 < state.n and y < state.n and (x+1,y) not in blocked_list:
+                car_moves[car_num].append((car_num, "down", (x+1,y)))
+            if x-1 >= 0 and y < state.n and (x-1,y) not in blocked_list:
+                car_moves[car_num].append((car_num, "up", (x-1,y)))
+            if x < state.n and y-1 >= 0 and (x,y-1) not in blocked_list:
+                car_moves[car_num].append((car_num, "left", (x,y-1)))
+            if x < state.n and y+1 < state.n and (x,y+1) not in blocked_list:
+                car_moves[car_num].append((car_num, "right", (x,y+1)))
 
         list_combinations = []
-        combination_size = state.n
+        combination_size = self.attendants
 
         for combo in itertools.combinations(set(itertools.chain.from_iterable(car_moves)), combination_size):
             # Check if all elements are from different lists
             lists_used = set(item[0] for item in combo)
             if len(lists_used) == combination_size:
-                list_combinations.append(combo)
+                combo_list = list(combo)
+                index_to_extract = 2
+                result = [sublist[index_to_extract] if index_to_extract < len(sublist) else None for sublist in combo_list]
+                result.extend(state.cars)
+                if len(result) == len(set(result)):
+                    combo = tuple(list[:-1] for list in combo)
+                    list_combinations.append(combo)
 
         action_list = [set(combination) for combination in list_combinations]
 
