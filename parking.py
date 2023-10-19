@@ -72,14 +72,31 @@ class Problem:
         combination_size = self.attendants
 
         for combo in itertools.combinations(set(itertools.chain.from_iterable(car_moves)), combination_size):
-            # Check if all elements are from different lists
+            # Generate combinations of car moves, taking one move from each car's list
             lists_used = set(item[0] for item in combo)
             if len(lists_used) == combination_size:
                 combo_list = list(combo)
                 index_to_extract = 2
-                result = [sublist[index_to_extract] if index_to_extract < len(sublist) else None for sublist in combo_list]
-                result.extend(state.cars)
-                if len(result) == len(set(result)):
+
+                #result = [sublist[index_to_extract] if index_to_extract < len(sublist) else None for sublist in combo_list]
+                # below is a breakdown of the line above, easier to debug
+                result = []
+                for sublist in combo_list:
+                    if index_to_extract < len(sublist):
+                        result.append(sublist[index_to_extract])
+
+                #result.extend(state.cars) # need to only add cars that aren't being moved
+                # checks if any cars aren't part of the combo
+                # not being moved, then adds them to the result
+                # so that cars specifically being told to say don't
+                # make the move invalid
+                if state.n > combination_size:
+                    for car in range(state.n):
+                        if car not in lists_used:
+                            result.append((state.cars[car]))
+
+                result_set = set(result)
+                if len(result) == len(result_set):
                     combo = tuple(list[:-1] for list in combo)
                     list_combinations.append(combo)
 
@@ -135,8 +152,37 @@ class Problem:
         """
         raise NotImplementedError
 
+
 def heuristic_dist(node):
-    raise NotImplementedError
+    """
+    # Attempted heuristic, is pretty cheeks
+
+    dividend = int(np.floor(node.state.n/2))
+    for i in range(dividend):
+        left_car = node.state.cars[i]
+        right_car = node.state.cars[node.state.n-1-i]
+        left_goal = (node.state.n-1, node.state.n-1-i)
+        right_goal = (node.state.n-1, i)
+        if left_car != left_goal or right_car != right_goal:
+            left_dist = abs(left_car[0] - left_goal[0]) + abs(left_car[1] - left_goal[1])
+            right_dist = abs(right_car[0] - right_goal[0]) + abs(right_car[1] - right_goal[1])
+            return left_dist + right_dist
+
+    if node.state.n%2 == 1:
+        middle_car = node.state.cars[dividend]
+        middle_goal = (node.state.n-1, dividend)
+    else:
+        middle_car = node.state.cars[dividend]
+        middle_goal = (node.state.n-1, dividend-1)
+
+    return abs(middle_car[0] - middle_goal[0]) + abs(middle_car[1] - middle_goal[1])
+    """
+    # this one is the sum of manhattan distances
+    # return sum([abs(car[0] - node.state.n + 1) + abs(car[1] - node.state.n + 1) for car in node.state.cars])
+
+    # this one is just the distances from the bottom row, so only x value, best one so far, can solve 4 cars quick
+    return sum([abs(car[0] - node.state.n + 1) for car in node.state.cars])
+
 # ___________________________________________________________________
 # You should not modify anything below the line (except for test
 # purposes, in which case you should repair it to the original state
