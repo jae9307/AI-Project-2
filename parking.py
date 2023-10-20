@@ -1,3 +1,10 @@
+"""
+parking.py
+Contains the code for solving the parking problem using a variety of search
+algorithms.
+Authors: Jose Estevez, Brett Lubberts
+"""
+
 import argparse
 from collections import deque
 import functools
@@ -7,7 +14,7 @@ import numpy as np
 import pdb
 import random
 import sys
-import time 
+import time
 
 
 class Problem:
@@ -57,8 +64,8 @@ class Problem:
         for (x,y) in state.cars:
             car_num = state.cars_inv[(x,y)]
             # each car gets its own list of valid moves
-            car_moves[car_num].append((car_num, "stay", (x,y))) #Every car can stay in place
-            # if it's legal to go up, down, left, or right, add that to the list of legal moves
+            car_moves[car_num].append((car_num, "stay", (x,y)))
+            # if it's legal to go up, down, left, or right
             if x+1 < state.n and y < state.n and (x+1,y) not in blocked_list:
                 car_moves[car_num].append((car_num, "down", (x+1,y)))
             if x-1 >= 0 and y < state.n and (x-1,y) not in blocked_list:
@@ -71,21 +78,19 @@ class Problem:
         list_combinations = []
         combination_size = self.attendants
 
-        for combo in itertools.combinations(set(itertools.chain.from_iterable(car_moves)), combination_size):
-            # Generate combinations of car moves, taking one move from each car's list
+        for combo in itertools.combinations(set(
+                itertools.chain.from_iterable(car_moves)), combination_size):
+            # Generate combinations of moves, taking one move from each list
             lists_used = set(item[0] for item in combo)
             if len(lists_used) == combination_size:
                 combo_list = list(combo)
                 index_to_extract = 2
 
-                #result = [sublist[index_to_extract] if index_to_extract < len(sublist) else None for sublist in combo_list]
-                # below is a breakdown of the line above, easier to debug
                 result = []
                 for sublist in combo_list:
                     if index_to_extract < len(sublist):
                         result.append(sublist[index_to_extract])
 
-                #result.extend(state.cars) # need to only add cars that aren't being moved
                 # checks if any cars aren't part of the combo
                 # not being moved, then adds them to the result
                 # so that cars specifically being told to say don't
@@ -135,7 +140,8 @@ class Problem:
         test whether cars have made it to the bottom row, in 
         reverse order.
         """
-        return all([(y == state.n-1-i) and (x == state.n-1) for i,(x,y) in zip(range(state.n), state.cars)])
+        return all([(y == state.n-1-i) and (x == state.n-1) for i,(x,y) in
+                    zip(range(state.n), state.cars)])
 
     def path_cost(self, c, state1, action, state2):
         """Return the cost of a solution path that arrives at state2 from
@@ -154,34 +160,15 @@ class Problem:
 
 
 def heuristic_dist(node):
+    """Return the heuristic distance to the goal from the given state.
+    This heuristic is the number of cars that are not in their goal
+    position.
     """
-    # Attempted heuristic, is pretty cheeks
 
-    dividend = int(np.floor(node.state.n/2))
-    for i in range(dividend):
-        left_car = node.state.cars[i]
-        right_car = node.state.cars[node.state.n-1-i]
-        left_goal = (node.state.n-1, node.state.n-1-i)
-        right_goal = (node.state.n-1, i)
-        if left_car != left_goal or right_car != right_goal:
-            left_dist = abs(left_car[0] - left_goal[0]) + abs(left_car[1] - left_goal[1])
-            right_dist = abs(right_car[0] - right_goal[0]) + abs(right_car[1] - right_goal[1])
-            return left_dist + right_dist
+    # best one
+    return sum((x, y) != (node.state.n - 1, node.state.n - 1 - i) for i,
+        (x, y) in enumerate(node.state.cars))
 
-    if node.state.n%2 == 1:
-        middle_car = node.state.cars[dividend]
-        middle_goal = (node.state.n-1, dividend)
-    else:
-        middle_car = node.state.cars[dividend]
-        middle_goal = (node.state.n-1, dividend-1)
-
-    return abs(middle_car[0] - middle_goal[0]) + abs(middle_car[1] - middle_goal[1])
-    """
-    # this one is the sum of manhattan distances
-    # return sum([abs(car[0] - node.state.n + 1) + abs(car[1] - node.state.n + 1) for car in node.state.cars])
-
-    # this one is just the distances from the bottom row, so only x value, best one so far, can solve 4 cars quick
-    return sum([abs(car[0] - node.state.n + 1) for car in node.state.cars])
 
 # ___________________________________________________________________
 # You should not modify anything below the line (except for test
@@ -213,7 +200,7 @@ class State:
         num_format = "{car: " + f"{max_len}" + "d}"
         barrier_str = " " * (max_len - 1) + "*"
         final_str = "+" + "-" * (2 * (self.n + 2)) + "+\n"
-    
+
         for i in range(self.n):
             final_str += "|  "
             for j in range(self.n):
@@ -349,7 +336,7 @@ class PriorityQueue:
         except ValueError:
             raise KeyError(str(key) + " is not in the priority queue")
         heapq.heapify(self.heap)
-        
+
 
 def memoize(fn, slot=None, maxsize=32):
     """Memoize fn: make it remember the computed value for any argument list.
