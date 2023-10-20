@@ -54,9 +54,11 @@ def mutate(im: np.ndarray) -> np.ndarray:
 		replace with a randomly chosen new color.
 	"""
 
-	current_color = im[random.randint(0, im.shape[0]-1), random.randint(0, im.shape[1]-1), :]
+	current_color = im[random.randint(0, im.shape[0]-1),
+					random.randint(0, im.shape[1]-1), :]
 
-	new_color = np.array([random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)])
+	new_color = np.array([random.randint(0, 255),
+						  random.randint(0, 255), random.randint(0, 255)])
 
 	im[np.where((im == current_color).all(axis=2))] = new_color
 	return im
@@ -74,18 +76,40 @@ def evaluate(im: np.ndarray):
 		freedom to implement this however you like.
 	"""
 	# just sums the red and greens and subtracts the blues
-	val = im[:,:,0] + im[:,:, 1] - im[:, :, 2]
-	return np.sum(val)
+	#val = im[:,:,0] + im[:,:, 1] - im[:, :, 2]
+	#return np.sum(val)
+	different_neighbors = 0
+	for (x,y) in zip(range(400), range(800)):
+		if x + 1 < 400 and y < 800:
+			if im[x][y].all() != im[x+1][y].all():
+				different_neighbors +=1
+		if x - 1 >= 0 and y < 800:
+			if im[x][y].all() != im[x-1][y].all():
+				different_neighbors +=1
+		if x < 400 and y - 1 >= 0:
+			if im[x][y-1].all() != im[x][y-1].all():
+				different_neighbors +=1
+		if x < 400 and y + 1 < 800:
+			if im[x][y+1].all() != im[x][y+1].all():
+				different_neighbors +=1
+
+	return different_neighbors
+
+
 def main():
 	parser = argparse.ArgumentParser(
     	prog='painter',
     	description='creates paintings according to a genetic algorithm'
 	)
 
-	parser.add_argument('-g', '--generations', default=100, help="The number of generations to run", type=int)
-	parser.add_argument('-p', '--pools', default=10, help="The size of the pool", type=int)
-	parser.add_argument('-m', '--mutation', default=.2, help="The chance of a mutation", type=float)
-	parser.add_argument('-r', '--recombine', default = 2, help="The number of pairs to recombine in each generation", type=int)
+	parser.add_argument('-g', '--generations',
+			default=200, help="The number of generations to run", type=int)
+	parser.add_argument('-p',
+				'--pools', default=15, help="The size of the pool", type=int)
+	parser.add_argument('-m', '--mutation', default=.6,
+						help="The chance of a mutation", type=float)
+	parser.add_argument('-r', '--recombine', default = 2,
+		help="The number of pairs to recombine in each generation", type=int)
 	args = parser.parse_args()
 
 	red = np.zeros((400,800,3))
