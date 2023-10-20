@@ -1,3 +1,9 @@
+"""
+painter.py
+Creates art using a genetic algorithm
+Authors: Jose Estevez, Brett Lubberts
+"""
+
 import skimage.io as io
 import numpy as np
 from matplotlib import pyplot as plt
